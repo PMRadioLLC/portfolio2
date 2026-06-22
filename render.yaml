@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: portfolio2
+    runtime: node
+    plan: free
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: node server/index.mjs
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      # Secrets — set these in the Render dashboard (sync:false = not in repo):
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: CONTACT_TO
+        sync: false

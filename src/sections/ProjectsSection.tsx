@@ -1,15 +1,13 @@
 import { useState } from 'react';
 import FadeIn from '../components/FadeIn';
 
+
 const REQUEST_EMAIL = 'sankalpsandeepsingh@icloud.com';
 
-type Status = 'idle' | 'sending' | 'sent' | 'error';
-
 export default function ProjectsSection() {
-  const [status, setStatus] = useState<Status>('idle');
-  const submitted = status === 'sent';
+  const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
     const data = new FormData(form);
@@ -19,20 +17,16 @@ export default function ProjectsSection() {
       message: String(data.get('message') || ''),
     };
 
-    setStatus('sending');
-    try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const json = await res.json();
-      if (!res.ok || !json.ok) throw new Error(json.error || 'Failed to send');
-      form.reset();
-      setStatus('sent');
-    } catch {
-      setStatus('error');
-    }
+    // Instant UI update — don't wait for the network
+    setSubmitted(true);
+    form.reset();
+
+    // Fire and forget — backend sends the email in the background
+    fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
   };
 
   const inputClass =
@@ -113,8 +107,7 @@ export default function ProjectsSection() {
             />
             <button
               type="submit"
-              disabled={status === 'sending'}
-              className="mt-2 self-start rounded-full text-white font-medium uppercase tracking-widest px-10 py-4 text-sm sm:text-base transition-transform duration-200 hover:scale-[1.03] disabled:opacity-60 disabled:hover:scale-100"
+              className="mt-2 self-start rounded-full text-white font-medium uppercase tracking-widest px-10 py-4 text-sm sm:text-base transition-transform duration-200 hover:scale-[1.03]"
               style={{
                 background:
                   'linear-gradient(123deg, #18011F 7%, #B600A8 37%, #7621B0 72%, #BE4C00 100%)',
@@ -124,17 +117,11 @@ export default function ProjectsSection() {
                 outlineOffset: '-3px',
               }}
             >
-              {status === 'sending' ? 'Sending…' : 'Send Message'}
+              Send Message
             </button>
-            {status === 'sent' && (
+            {submitted && (
               <p className="text-green-400/80 text-sm mt-1">
                 Thanks! Your message was sent — I&apos;ll get back to you soon.
-              </p>
-            )}
-            {status === 'error' && (
-              <p className="text-red-400/80 text-sm mt-1">
-                Something went wrong. Please try again, or email me directly at{' '}
-                {REQUEST_EMAIL}.
               </p>
             )}
           </form>

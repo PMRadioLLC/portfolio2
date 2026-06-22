@@ -39,35 +39,42 @@ export default function HeroSection() {
   // animation frame. Only seek when the target frame actually changes,
   // and skip while a previous seek is still resolving, to avoid stutter.
   useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+
+    // On iOS, preload="auto" is ignored. autoPlay forces the browser to load
+    // frames; we immediately pause so scrubbing takes over.
+    const pauseOnLoad = () => { v.pause(); };
+    v.addEventListener('canplay', pauseOnLoad, { once: true });
+
     let raf = 0;
     let seeking = false;
     let lastTime = -1;
 
     const tick = () => {
-      const v = videoRef.current;
-      const d = v?.duration ?? 0;
-      if (v && d && !Number.isNaN(d)) {
+      const d = v.duration ?? 0;
+      if (d && !Number.isNaN(d)) {
         const target = Math.min(d, Math.max(0, smoothProgress.get() * d));
         if (!seeking && Math.abs(target - lastTime) > 1 / 60) {
           lastTime = target;
           seeking = true;
           v.currentTime = target;
+          // Keep paused on mobile where autoplay might re-start playback
+          if (!v.paused) v.pause();
         }
       }
       raf = requestAnimationFrame(tick);
     };
 
-    const onSeeked = () => {
-      seeking = false;
-    };
+    const onSeeked = () => { seeking = false; };
 
-    const v = videoRef.current;
-    v?.addEventListener('seeked', onSeeked);
+    v.addEventListener('seeked', onSeeked);
     raf = requestAnimationFrame(tick);
 
     return () => {
       cancelAnimationFrame(raf);
-      v?.removeEventListener('seeked', onSeeked);
+      v.removeEventListener('seeked', onSeeked);
+      v.removeEventListener('canplay', pauseOnLoad);
     };
   }, [smoothProgress]);
 
@@ -115,6 +122,7 @@ export default function HeroSection() {
             src={VIDEO_SRC}
             muted
             playsInline
+            autoPlay
             preload="auto"
             className="h-[45vh] sm:h-[52vh] md:h-[58vh] w-auto max-w-[92vw] object-contain select-none"
           />

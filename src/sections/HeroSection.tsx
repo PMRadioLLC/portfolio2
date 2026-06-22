@@ -8,7 +8,7 @@ import {
 import FadeIn from '../components/FadeIn';
 import ContactButton from '../components/ContactButton';
 
-const NAV_LINKS = ['About', 'Price', 'Projects', 'Contact'];
+const NAV_WORDS = ['Nice', 'To', 'Meet', 'You'];
 
 // Re-encoded all-intra (every frame is a keyframe) so seeking is instant.
 const VIDEO_SRC = '/hero-scrub.mp4';
@@ -93,14 +93,13 @@ export default function HeroSection() {
           y={-20}
           className="relative z-20 flex justify-between px-6 md:px-10 pt-6 md:pt-8"
         >
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link}
-              href={`#${link.toLowerCase()}`}
-              className="text-[#D7E2EA] font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem] transition-opacity duration-200 hover:opacity-70"
+          {NAV_WORDS.map((word) => (
+            <span
+              key={word}
+              className="text-[#D7E2EA] font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem]"
             >
-              {link}
-            </a>
+              {word}
+            </span>
           ))}
         </FadeIn>
 
